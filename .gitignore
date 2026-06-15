@@ -1,0 +1,7 @@
+# OS / 에디터
+.DS_Store
+Thumbs.db
+*.log
+
+# 의존성 (정적 사이트라 없음, 혹시 모를 대비)
+node_modules/
