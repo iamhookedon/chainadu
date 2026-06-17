@@ -48,24 +48,28 @@
     mDone.style.display = 'block';
   });
 
-  // 발음 듣기 — 브라우저 내장 음성합성(Web Speech API). 외부 의존 없음.
-  function speak(text) {
-    if (!('speechSynthesis' in window)) {
-      alert('이 브라우저는 음성 재생을 지원하지 않아요. (Chrome/Edge 권장)');
-      return;
-    }
-    window.speechSynthesis.cancel(); // 이전 음성 중단
+  // 발음 듣기 — 구글 다국어 TTS를 직접 재생(PC·모바일 동일).
+  // (페이지의 <meta name="referrer" content="no-referrer">로 구글 차단을 회피)
+  function speakViaBrowser(text) {
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
     var u = new SpeechSynthesisUtterance(text);
     u.lang = 'zh-CN';
-    u.rate = 0.85; // 학습용으로 조금 천천히
-    // 중국어 음성이 설치돼 있으면 우선 선택
+    u.rate = 0.85;
     var voices = window.speechSynthesis.getVoices();
     var zh = voices.filter(function (v) { return /zh|chinese|中文|普通话/i.test(v.lang + ' ' + v.name); })[0];
     if (zh) u.voice = zh;
     window.speechSynthesis.speak(u);
   }
-  // 일부 브라우저는 voices를 비동기로 로드 → 미리 한 번 깨워둠
-  if ('speechSynthesis' in window) { window.speechSynthesis.getVoices(); }
+
+  function speak(text) {
+    var url = 'https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=zh-CN&q=' + encodeURIComponent(text);
+    var audio = new Audio(url);
+    audio.play().catch(function () {
+      // 구글이 막히는 환경이면 브라우저 내장 음성으로 폴백
+      speakViaBrowser(text);
+    });
+  }
 
   document.querySelectorAll('.js-speak').forEach(function (btn) {
     btn.addEventListener('click', function () {
